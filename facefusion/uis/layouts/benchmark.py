@@ -1,6 +1,7 @@
 import gradio
 
 from facefusion import benchmarker, state_manager
+from facefusion.filesystem import resolve_relative_path
 from facefusion.uis.components import about, age_modifier_options, background_remover_options, benchmark, benchmark_options, deep_swapper_options, download, execution, execution_thread_count, expression_restorer_options, face_debugger_options, face_editor_options, face_enhancer_options, face_swapper_options, frame_colorizer_options, frame_enhancer_options, lip_syncer_options, memory, processors
 
 
@@ -76,4 +77,4 @@ def listen() -> None:
 
 
 def run(ui : gradio.Blocks) -> None:
-	ui.launch(favicon_path = 'facefusion.ico', inbrowser = state_manager.get_item('open_browser'))
+	ui.launch(favicon_path = resolve_relative_path('../facefusion.ico'), inbrowser = state_manager.get_item('open_browser'))

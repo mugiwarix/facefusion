@@ -3,7 +3,7 @@ from typing import List, Optional
 import gradio
 
 from facefusion import state_manager, translator
-from facefusion.filesystem import get_file_name, resolve_file_paths
+from facefusion.filesystem import get_file_name, resolve_file_paths, resolve_relative_path
 from facefusion.processors.core import get_processors_modules
 from facefusion.uis.core import register_ui_component
 
@@ -39,7 +39,7 @@ def update_processors(processors : List[str]) -> gradio.CheckboxGroup:
 
 
 def sort_processors(processors : List[str]) -> List[str]:
-	available_processors = [ get_file_name(file_path) for file_path in resolve_file_paths('facefusion/processors/modules') ]
+	available_processors = [ get_file_name(file_path) for file_path in resolve_file_paths(resolve_relative_path('processors/modules')) ]
 	current_processors = []
 
 	for processor in processors + available_processors:

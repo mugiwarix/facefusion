@@ -1,3 +1,4 @@
+import os
 import platform
 from typing import Any, Iterable, Optional, Reversible, Sequence
 
@@ -12,6 +13,20 @@ def is_macos() -> bool:
 
 def is_windows() -> bool:
 	return platform.system().lower() == 'windows'
+
+
+def resolve_facefusion_assets_path(path : str = '') -> str:
+	assets_directory_path = os.getenv('FACEFUSION_ASSETS_PATH')
+
+	if not assets_directory_path:
+		package_directory_path = os.path.dirname(__file__)
+
+		if package_directory_path.startswith('/nix/store/'):
+			cache_directory_path = os.getenv('XDG_CACHE_HOME') or os.path.join(os.path.expanduser('~'), '.cache')
+			assets_directory_path = os.path.join(cache_directory_path, 'facefusion', 'assets')
+		else:
+			assets_directory_path = os.path.abspath(os.path.join(package_directory_path, '../.assets'))
+	return os.path.abspath(os.path.join(assets_directory_path, path))
 
 
 def create_int_metavar(int_range : Sequence[int]) -> str:

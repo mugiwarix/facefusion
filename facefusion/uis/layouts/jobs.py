@@ -1,6 +1,7 @@
 import gradio
 
 from facefusion import state_manager
+from facefusion.filesystem import resolve_relative_path
 from facefusion.uis.components import about, job_list, job_list_options
 
 
@@ -28,4 +29,4 @@ def listen() -> None:
 
 
 def run(ui : gradio.Blocks) -> None:
-	ui.launch(favicon_path = 'facefusion.ico', inbrowser = state_manager.get_item('open_browser'))
+	ui.launch(favicon_path = resolve_relative_path('../facefusion.ico'), inbrowser = state_manager.get_item('open_browser'))

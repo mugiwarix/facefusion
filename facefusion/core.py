@@ -9,7 +9,7 @@ from facefusion import benchmarker, cli_helper, content_analyser, face_classifie
 from facefusion.args import apply_args, collect_job_args, reduce_job_args, reduce_step_args
 from facefusion.download import conditional_download_hashes, conditional_download_sources
 from facefusion.exit_helper import hard_exit, signal_exit
-from facefusion.filesystem import get_file_extension, get_file_name, is_image, is_video, resolve_file_paths, resolve_file_pattern
+from facefusion.filesystem import get_file_extension, get_file_name, is_image, is_video, resolve_file_paths, resolve_file_pattern, resolve_relative_path
 from facefusion.jobs import job_helper, job_manager, job_runner
 from facefusion.jobs.job_list import compose_job_list
 from facefusion.memory import limit_system_memory
@@ -142,7 +142,7 @@ def force_download() -> ErrorCode:
 		face_recognizer,
 		voice_extractor
 	]
-	available_processors = [ get_file_name(file_path) for file_path in resolve_file_paths('facefusion/processors/modules') ]
+	available_processors = [ get_file_name(file_path) for file_path in resolve_file_paths(resolve_relative_path('processors/modules')) ]
 	processor_modules = get_processors_modules(available_processors)
 
 	for module in common_modules + processor_modules:
@@ -346,5 +346,4 @@ def conditional_process() -> ErrorCode:
 		return image_to_video.process(start_time)
 
 	return 0
-
 

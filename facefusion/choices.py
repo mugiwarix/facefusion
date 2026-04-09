@@ -1,7 +1,7 @@
 import logging
 from typing import List, Sequence, get_args
 
-from facefusion.common_helper import create_float_range, create_int_range
+from facefusion.common_helper import create_float_range, create_int_range, resolve_facefusion_assets_path
 from facefusion.types import Angle, AudioEncoder, AudioFormat, AudioTypeSet, BenchmarkMode, BenchmarkResolution, BenchmarkSet, DownloadProvider, DownloadProviderSet, DownloadScope, EncoderSet, ExecutionProvider, ExecutionProviderSet, FaceDetectorModel, FaceDetectorSet, FaceLandmarkerModel, FaceMaskArea, FaceMaskAreaSet, FaceMaskRegion, FaceMaskRegionSet, FaceMaskType, FaceOccluderModel, FaceParserModel, FaceSelectorMode, FaceSelectorOrder, Gender, ImageFormat, ImageTypeSet, JobStatus, LogLevel, LogLevelSet, Race, Score, TempFrameFormat, UiWorkflow, VideoEncoder, VideoFormat, VideoMemoryStrategy, VideoPreset, VideoTypeSet, VoiceExtractorModel
 
 face_detector_set : FaceDetectorSet =\
@@ -91,13 +91,13 @@ output_video_presets : List[VideoPreset] = list(get_args(VideoPreset))
 benchmark_modes : List[BenchmarkMode] = list(get_args(BenchmarkMode))
 benchmark_set : BenchmarkSet =\
 {
-	'240p': '.assets/examples/target-240p.mp4',
-	'360p': '.assets/examples/target-360p.mp4',
-	'540p': '.assets/examples/target-540p.mp4',
-	'720p': '.assets/examples/target-720p.mp4',
-	'1080p': '.assets/examples/target-1080p.mp4',
-	'1440p': '.assets/examples/target-1440p.mp4',
-	'2160p': '.assets/examples/target-2160p.mp4'
+	'240p': resolve_facefusion_assets_path('examples/target-240p.mp4'),
+	'360p': resolve_facefusion_assets_path('examples/target-360p.mp4'),
+	'540p': resolve_facefusion_assets_path('examples/target-540p.mp4'),
+	'720p': resolve_facefusion_assets_path('examples/target-720p.mp4'),
+	'1080p': resolve_facefusion_assets_path('examples/target-1080p.mp4'),
+	'1440p': resolve_facefusion_assets_path('examples/target-1440p.mp4'),
+	'2160p': resolve_facefusion_assets_path('examples/target-2160p.mp4')
 }
 benchmark_resolutions : List[BenchmarkResolution] = list(get_args(BenchmarkResolution))
 

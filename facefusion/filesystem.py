@@ -4,6 +4,7 @@ import shutil
 from typing import List, Optional
 
 import facefusion.choices
+from facefusion.common_helper import resolve_facefusion_assets_path
 
 
 def get_file_size(file_path : str) -> int:
@@ -187,4 +188,8 @@ def remove_directory(directory_path : str) -> bool:
 
 
 def resolve_relative_path(path : str) -> str:
+	if path == '../.assets':
+		return resolve_facefusion_assets_path()
+	if path.startswith('../.assets/'):
+		return resolve_facefusion_assets_path(path.removeprefix('../.assets/'))
 	return os.path.abspath(os.path.join(os.path.dirname(__file__), path))

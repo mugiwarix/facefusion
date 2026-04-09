@@ -7,7 +7,7 @@ from facefusion import config, metadata, state_manager, translator
 from facefusion.common_helper import create_float_metavar, create_int_metavar, get_first, get_last
 from facefusion.execution import get_available_execution_providers
 from facefusion.ffmpeg import get_available_encoder_set
-from facefusion.filesystem import get_file_name, resolve_file_paths
+from facefusion.filesystem import get_file_name, resolve_file_paths, resolve_relative_path
 from facefusion.jobs import job_store
 from facefusion.processors.core import get_processors_modules
 from facefusion.sanitizer import sanitize_int_range, sanitize_job_id
@@ -24,7 +24,7 @@ def create_help_formatter_large(prog : str) -> HelpFormatter:
 def create_config_path_program() -> ArgumentParser:
 	program = ArgumentParser(add_help = False)
 	group_paths = program.add_argument_group('paths')
-	group_paths.add_argument('--config-path', help = translator.get('help.config_path'), default = 'facefusion.ini')
+	group_paths.add_argument('--config-path', help = translator.get('help.config_path'), default = resolve_relative_path('../facefusion.ini'))
 	job_store.register_job_keys([ 'config_path' ])
 	apply_config_path(program)
 	return program
@@ -186,7 +186,7 @@ def create_output_creation_program() -> ArgumentParser:
 
 def create_processors_program() -> ArgumentParser:
 	program = ArgumentParser(add_help = False)
-	available_processors = [ get_file_name(file_path) for file_path in resolve_file_paths('facefusion/processors/modules') ]
+	available_processors = [ get_file_name(file_path) for file_path in resolve_file_paths(resolve_relative_path('processors/modules')) ]
 	group_processors = program.add_argument_group('processors')
 	group_processors.add_argument('--processors', help = translator.get('help.processors').format(choices = ', '.join(available_processors)), default = config.get_str_list('processors', 'processors', 'face_swapper'), choices = available_processors, nargs = '+', metavar = 'PROCESSORS')
 	job_store.register_step_keys([ 'processors' ])
@@ -197,7 +197,7 @@ def create_processors_program() -> ArgumentParser:
 
 def create_uis_program() -> ArgumentParser:
 	program = ArgumentParser(add_help = False)
-	available_ui_layouts = [ get_file_name(file_path) for file_path in resolve_file_paths('facefusion/uis/layouts') ]
+	available_ui_layouts = [ get_file_name(file_path) for file_path in resolve_file_paths(resolve_relative_path('uis/layouts')) ]
 	group_uis = program.add_argument_group('uis')
 	group_uis.add_argument('--open-browser', help = translator.get('help.open_browser'), action = 'store_true', default = config.get_bool_value('uis', 'open_browser'))
 	group_uis.add_argument('--ui-layouts', help = translator.get('help.ui_layouts').format(choices = ', '.join(available_ui_layouts)), default = config.get_str_list('uis', 'ui_layouts', 'default'), choices = available_ui_layouts, nargs = '+', metavar = 'UI_LAYOUTS')

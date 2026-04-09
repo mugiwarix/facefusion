@@ -8,6 +8,7 @@ from typing import Iterator, List
 import facefusion.choices
 from facefusion import content_analyser, core, state_manager
 from facefusion.cli_helper import render_table
+from facefusion.common_helper import resolve_facefusion_assets_path
 from facefusion.download import conditional_download, resolve_download_url
 from facefusion.face_store import clear_static_faces
 from facefusion.filesystem import get_file_extension
@@ -16,7 +17,7 @@ from facefusion.vision import count_video_frame_total, detect_video_fps
 
 
 def pre_check() -> bool:
-	conditional_download('.assets/examples',
+	conditional_download(resolve_facefusion_assets_path('examples'),
 	[
 		resolve_download_url('examples-3.0.0', 'source.jpg'),
 		resolve_download_url('examples-3.0.0', 'source.mp3'),
@@ -35,7 +36,7 @@ def run() -> Iterator[List[BenchmarkCycleSet]]:
 	benchmark_resolutions = state_manager.get_item('benchmark_resolutions')
 	benchmark_cycle_count = state_manager.get_item('benchmark_cycle_count')
 
-	state_manager.init_item('source_paths', [ '.assets/examples/source.jpg', '.assets/examples/source.mp3' ])
+	state_manager.init_item('source_paths', [ resolve_facefusion_assets_path('examples/source.jpg'), resolve_facefusion_assets_path('examples/source.mp3') ])
 	state_manager.init_item('face_landmarker_score', 0)
 	state_manager.init_item('temp_frame_format', 'bmp')
 	state_manager.init_item('output_audio_volume', 0)
