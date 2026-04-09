@@ -11,6 +11,10 @@
 		flake-utils.lib.eachDefaultSystem (system:
 			let
 				pkgs = import nixpkgs { inherit system; };
+				cudaPkgs = import nixpkgs {
+					inherit system;
+					config.allowUnfree = true;
+				};
 				python = pkgs.python312.override {
 					packageOverrides = final: prev:
 					{
@@ -102,6 +106,33 @@
 					};
 				};
 				pythonPkgs = python.pkgs;
+				cudaLibraryPath = cudaPkgs.lib.makeLibraryPath [
+					cudaPkgs.stdenv.cc.cc.lib
+					cudaPkgs.zlib
+					cudaPkgs.cudaPackages.cuda_cudart
+					cudaPkgs.cudaPackages.cuda_nvrtc
+					cudaPkgs.cudaPackages.libcublas
+					cudaPkgs.cudaPackages.libcufft
+					cudaPkgs.cudaPackages.libcurand
+					cudaPkgs.cudaPackages.libcusolver
+					cudaPkgs.cudaPackages.libcusparse
+					cudaPkgs.cudaPackages.libnpp
+					cudaPkgs.cudaPackages.libnvjitlink
+					cudaPkgs.cudaPackages.cudnn
+				];
+				cudaDevShell = cudaPkgs.mkShell {
+					packages = [
+						cudaPkgs.python312
+						cudaPkgs.ffmpeg
+						cudaPkgs.curl
+					];
+
+					shellHook = ''
+						export CUDA_PATH=${cudaPkgs.cudaPackages.cudatoolkit}
+						export CUDA_HOME=${cudaPkgs.cudaPackages.cudatoolkit}
+						export LD_LIBRARY_PATH=/run/opengl-driver/lib:${cudaLibraryPath}:$LD_LIBRARY_PATH
+					'';
+				};
 				facefusion = pythonPkgs.buildPythonApplication rec {
 					pname = "facefusion";
 					version = "3.6.0";
@@ -155,5 +186,6 @@
 				packages.default = facefusion;
 				packages.facefusion = facefusion;
 				apps.default = flake-utils.lib.mkApp { drv = facefusion; };
+				devShells.cuda = cudaDevShell;
 			});
 }
