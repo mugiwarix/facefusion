@@ -15,6 +15,7 @@
 					inherit system;
 					config.allowUnfree = true;
 				};
+				isCudaSystem = system == "x86_64-linux";
 				python = pkgs.python312.override {
 					packageOverrides = final: prev:
 					{
@@ -103,36 +104,79 @@
 							doCheck = false;
 							pythonImportsCheck = [ "gradio_rangeslider" ];
 						};
+					} // pkgs.lib.optionalAttrs isCudaSystem {
+						"onnxruntime-gpu" = prev.buildPythonPackage rec {
+							pname = "onnxruntime-gpu";
+							version = "1.24.3";
+							format = "wheel";
+							src = pkgs.fetchurl {
+								url = "https://files.pythonhosted.org/packages/24/fa/58ceca812214c9c1a286407c376e42e0b7de3e2c6e14b61cdf3caf6d6d9c/onnxruntime_gpu-1.24.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl";
+								sha256 = "537bdd6d95006a9200ae81f2e73ba9e621e723fdf0deb5901e2e62fb2cccf876";
+							};
+							propagatedBuildInputs = with final;
+							[
+								flatbuffers
+								numpy
+								packaging
+								protobuf
+								sympy
+							];
+							doCheck = false;
+						};
 					};
 				};
 				pythonPkgs = python.pkgs;
-				cudaLibraryPath = cudaPkgs.lib.makeLibraryPath [
-					cudaPkgs.stdenv.cc.cc.lib
-					cudaPkgs.zlib
-					cudaPkgs.cudaPackages.cuda_cudart
-					cudaPkgs.cudaPackages.cuda_nvrtc
-					cudaPkgs.cudaPackages.libcublas
-					cudaPkgs.cudaPackages.libcufft
-					cudaPkgs.cudaPackages.libcurand
-					cudaPkgs.cudaPackages.libcusolver
-					cudaPkgs.cudaPackages.libcusparse
-					cudaPkgs.cudaPackages.libnpp
-					cudaPkgs.cudaPackages.libnvjitlink
-					cudaPkgs.cudaPackages.cudnn
+				cudaRuntimeLibraries = with cudaPkgs;
+				[
+					stdenv.cc.cc.lib
+					zlib
+					cudaPackages.cuda_cudart
+					cudaPackages.cuda_nvrtc
+					cudaPackages.libcublas
+					cudaPackages.libcufft
+					cudaPackages.libcurand
+					cudaPackages.libcusolver
+					cudaPackages.libcusparse
+					cudaPackages.libnpp
+					cudaPackages.libnvjitlink
+					cudaPackages.cudnn
 				];
-				cudaDevShell = cudaPkgs.mkShell {
+				cudaLibraryPath = cudaPkgs.lib.makeLibraryPath cudaRuntimeLibraries;
+				facefusionPython = if isCudaSystem then python.withPackages (ps:
+				[
+					ps.gradio
+					ps.numpy
+					ps.onnx
+					ps."onnxruntime-gpu"
+					ps."opencv-python"
+					ps.scipy
+					ps.tqdm
+					ps."gradio-rangeslider"
+				]) else null;
+				facefusionLauncher = if isCudaSystem then cudaPkgs.writeShellApplication {
+					name = "facefusion";
+					runtimeInputs = [ facefusionPython cudaPkgs.ffmpeg cudaPkgs.curl ];
+					text = ''
+						exec python "$FACEFUSION_SRC/facefusion.py" "$@"
+					'';
+				} else null;
+				cudaDevShell = if isCudaSystem then cudaPkgs.mkShell {
 					packages = [
-						cudaPkgs.python312
+						facefusionPython
+						facefusionLauncher
 						cudaPkgs.ffmpeg
 						cudaPkgs.curl
 					];
 
 					shellHook = ''
+						facefusion_src="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+						export FACEFUSION_SRC="$facefusion_src"
+						export PYTHONPATH="$FACEFUSION_SRC''${PYTHONPATH:+:$PYTHONPATH}"
 						export CUDA_PATH=${cudaPkgs.cudaPackages.cudatoolkit}
 						export CUDA_HOME=${cudaPkgs.cudaPackages.cudatoolkit}
-						export LD_LIBRARY_PATH=/run/opengl-driver/lib:${cudaLibraryPath}:$LD_LIBRARY_PATH
+						export LD_LIBRARY_PATH=/run/opengl-driver/lib:${cudaLibraryPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 					'';
-				};
+				} else null;
 				facefusion = pythonPkgs.buildPythonApplication rec {
 					pname = "facefusion";
 					version = "3.6.0";
@@ -186,6 +230,8 @@
 				packages.default = facefusion;
 				packages.facefusion = facefusion;
 				apps.default = flake-utils.lib.mkApp { drv = facefusion; };
+			} // pkgs.lib.optionalAttrs isCudaSystem {
+				devShells.default = cudaDevShell;
 				devShells.cuda = cudaDevShell;
 			});
 }
