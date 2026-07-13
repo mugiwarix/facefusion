@@ -26,7 +26,9 @@ def multi_process_capture(camera_capture : cv2.VideoCapture, camera_fps : Fps) -
 			futures = []
 
 			while camera_capture and camera_capture.isOpened():
-				_, capture_vision_frame = camera_capture.read()
+				success, capture_vision_frame = camera_capture.read()
+				if not success or capture_vision_frame is None:
+					continue
 				if analyse_stream(capture_vision_frame, camera_fps):
 					camera_capture.release()
 
