@@ -8,7 +8,7 @@
 	};
 
 	outputs = { self, nixpkgs, flake-utils }:
-		flake-utils.lib.eachDefaultSystem (system:
+		flake-utils.lib.eachSystem ["x86_64-linux"] (system:
 			let
 				pkgs = import nixpkgs { inherit system; };
 				cudaPkgs = import nixpkgs {
@@ -19,6 +19,10 @@
 				python = pkgs.python312.override {
 					packageOverrides = final: prev:
 					{
+						"inline-snapshot" = prev."inline-snapshot".overridePythonAttrs (_: {
+							doCheck = false;
+						});
+
 						"gradio-client" = prev.buildPythonPackage rec {
 							pname = "gradio-client";
 							version = "1.12.1";
